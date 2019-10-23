@@ -5,7 +5,7 @@
 domain_name = "synadia.engineering"
 
 // supply the local path to the index file
-index_path = "/Users/ton-annevanderlinden/proj-condoor-emmen/terraform/index.html"
+index_path = "C:/sources/tf-module-s3-cdn-acm/terraform/index.html"
 
 // supply the local path for the error file
-error_path = "/Users/ton-annevanderlinden/proj-condoor-emmen/terraform/error.html"
+error_path = "C:/sources/tf-module-s3-cdn-acm/terraform/error.html"

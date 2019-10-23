@@ -63,17 +63,11 @@ resource "aws_acm_certificate_validation" "default" {
 // website bucket. will be used by cloudfront as origin
 // we will use the domain name as bucketname
 resource "aws_s3_bucket" "prd_bucket" {
-  // domain name as bucket name for ease of use
   bucket = var.domain_name
-
-  // public because it needs to be readable from the internet
-  acl           = "public-read"
+  acl           = "private"
   force_destroy = true
   website {
-    // request for root path of the site go here
     index_document = "index.html"
-
-    // error or non existing pages go here
     error_document = "error.html"
   }
   policy = <<EOF
