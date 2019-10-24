@@ -80,10 +80,10 @@ resource "aws_s3_bucket" "site_cdn_bucket" {
   bucket = var.domain_name
   acl           = "private"
   force_destroy = true
-  website {
-    index_document = "index.html"
-    error_document = "error.html"
-  }
+#   website {
+#     index_document = "index.html"
+#     error_document = "error.html"
+#   }
 }
 
 
@@ -102,22 +102,22 @@ resource "aws_cloudfront_origin_access_identity" "origin_access_identity_s3" {
 // CLOUDFRONT
 resource "aws_cloudfront_distribution" "prd_distribution" {
   origin {
-    domain_name = aws_s3_bucket.site_cdn_bucket.website_endpoint
+    domain_name = var.domain_name
     origin_id   = "S3-${aws_s3_bucket.site_cdn_bucket.bucket}"
     s3_origin_config {
         origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity_s3.s3_canonical_user_id
     }
   }
-  default_root_object = "index.html"
+#   default_root_object = "index.html"
   enabled = true
   // aliases for the distribution (extra cnames)
   aliases = ["synadia.engineering"]
-  custom_error_response {
-    error_caching_min_ttl = 3000
-    error_code            = 404
-    response_code         = 200
-    response_page_path    = "/index.html"
-  }
+#   custom_error_response {
+#     error_caching_min_ttl = 3000
+#     error_code            = 404
+#     response_code         = 200
+#     response_page_path    = "/index.html"
+#   }
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
@@ -146,17 +146,17 @@ resource "aws_cloudfront_distribution" "prd_distribution" {
   }
 }
 
-// S3 AGAIN
-// to provide the index and error files in s3
-// or use this location to implement a copy job to get your website files here
-resource "aws_s3_bucket_object" "index" {
-  bucket = aws_s3_bucket.site_cdn_bucket.bucket
-  key    = "index.html"
-  source = var.index_path
-}
+# // S3 AGAIN
+# // to provide the index and error files in s3
+# // or use this location to implement a copy job to get your website files here
+# resource "aws_s3_bucket_object" "index" {
+#   bucket = aws_s3_bucket.site_cdn_bucket.bucket
+#   key    = "index.html"
+#   source = var.index_path
+# }
 
-resource "aws_s3_bucket_object" "error" {
-  bucket = aws_s3_bucket.site_cdn_bucket.bucket
-  key    = "error.html"
-  source = var.error_path
-}
+# resource "aws_s3_bucket_object" "error" {
+#   bucket = aws_s3_bucket.site_cdn_bucket.bucket
+#   key    = "error.html"
+#   source = var.error_path
+# }
