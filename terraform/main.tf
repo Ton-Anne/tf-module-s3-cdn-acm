@@ -56,17 +56,16 @@ resource "aws_acm_certificate_validation" "default" {
 data "aws_iam_policy_document" "s3_policy" {
   statement {
     actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.static.arn}/*"]
+    resources = [aws_s3_bucket.site_cdn_bucket.arn]
 
     principals {
       type        = "CanonicalUser"
       identifiers = [aws_cloudfront_origin_access_identity.origin_access_identity.s3_canonical_user_id]
     }
   }
-
   statement {
     actions   = ["s3:ListBucket"]
-    resources = [aws_s3_bucket.static.arn]
+    resources = [aws_s3_bucket.site_cdn_bucket.arn]
 
     principals {
       type        = "CanonicalUser"
@@ -81,7 +80,7 @@ data "aws_iam_policy_document" "s3_policy" {
 
 // S3
 // bucket to be used by cloudfront as origin
-resource "aws_s3_bucket" "prd_bucket" {
+resource "aws_s3_bucket" "site_cdn_bucket" {
   bucket = var.domain_name
   acl           = "private"
   force_destroy = true
@@ -89,7 +88,6 @@ resource "aws_s3_bucket" "prd_bucket" {
     index_document = "index.html"
     error_document = "error.html"
   }
-  policy = data.aws_iam_policy_document.s3_policy
 }
 
 
@@ -108,8 +106,8 @@ resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
 // CLOUDFRONT
 resource "aws_cloudfront_distribution" "prd_distribution" {
   origin {
-    domain_name = aws_s3_bucket.prd_bucket.website_endpoint
-    origin_id   = "S3-${aws_s3_bucket.prd_bucket.bucket}"
+    domain_name = aws_s3_bucket.site_cdn_bucket.website_endpoint
+    origin_id   = "S3-${aws_s3_bucket.site_cdn_bucket.bucket}"
     s3_origin_config {
         origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity.cloudfront_access_identity_path
     }
@@ -127,7 +125,7 @@ resource "aws_cloudfront_distribution" "prd_distribution" {
   default_cache_behavior {
     allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "S3-${aws_s3_bucket.prd_bucket.bucket}"
+    target_origin_id = "S3-${aws_s3_bucket.site_cdn_bucket.bucket}"
     forwarded_values {
       query_string = false
       cookies {
@@ -156,13 +154,13 @@ resource "aws_cloudfront_distribution" "prd_distribution" {
 // to provide the index and error files in s3
 // or use this location to implement a copy job to get your website files here
 resource "aws_s3_bucket_object" "index" {
-  bucket = aws_s3_bucket.prd_bucket.bucket
+  bucket = aws_s3_bucket.site_cdn_bucket.bucket
   key    = "index.html"
   source = var.index_path
 }
 
 resource "aws_s3_bucket_object" "error" {
-  bucket = aws_s3_bucket.prd_bucket.bucket
+  bucket = aws_s3_bucket.site_cdn_bucket.bucket
   key    = "error.html"
   source = var.error_path
 }
