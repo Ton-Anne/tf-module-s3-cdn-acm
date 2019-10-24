@@ -129,12 +129,10 @@ resource "aws_s3_bucket_object" "index" {
   bucket = aws_s3_bucket.prd_bucket.bucket
   key    = "index.html"
   source = var.index_path
-  acl    = "public-read"
 }
 
 resource "aws_s3_bucket_object" "error" {
   bucket = aws_s3_bucket.prd_bucket.bucket
   key    = "error.html"
   source = var.error_path
-  acl    = "public-read"
 }

@@ -11,4 +11,3 @@ variable "index_path" {
 // supply the local path for the error file
 variable "error_path" {
 }
-
