@@ -60,7 +60,7 @@ data "aws_iam_policy_document" "s3_policy" {
 
     principals {
       type        = "CanonicalUser"
-      identifiers = [aws_cloudfront_origin_access_identity.origin_access_identity.s3_canonical_user_id]
+      identifiers = [aws_cloudfront_origin_access_identity.origin_access_identity_s3.s3_canonical_user_id]
     }
   }
   statement {
@@ -69,14 +69,10 @@ data "aws_iam_policy_document" "s3_policy" {
 
     principals {
       type        = "CanonicalUser"
-      identifiers = [aws_cloudfront_origin_access_identity.origin_access_identity.s3_canonical_user_id]
+      identifiers = [aws_cloudfront_origin_access_identity.origin_access_identity_s3.s3_canonical_user_id]
     }
   }
 }
-
-
-
-
 
 // S3
 // bucket to be used by cloudfront as origin
@@ -95,7 +91,7 @@ resource "aws_s3_bucket" "site_cdn_bucket" {
 
 
 // ORIGIN ACCESS IDENTITY
-resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
+resource "aws_cloudfront_origin_access_identity" "origin_access_identity_s3" {
   comment = "Only identity that is able to access the S3 bucket"
 }
 
@@ -109,7 +105,7 @@ resource "aws_cloudfront_distribution" "prd_distribution" {
     domain_name = aws_s3_bucket.site_cdn_bucket.website_endpoint
     origin_id   = "S3-${aws_s3_bucket.site_cdn_bucket.bucket}"
     s3_origin_config {
-        origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity.cloudfront_access_identity_path
+        origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity_s3.s3_canonical_user_id
     }
   }
   default_root_object = "index.html"
