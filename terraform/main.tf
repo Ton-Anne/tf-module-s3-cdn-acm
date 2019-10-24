@@ -49,8 +49,38 @@ resource "aws_acm_certificate_validation" "default" {
   provider = aws.virginia
 }
 
+
+
+// IAM
+// policy for S3
+data "aws_iam_policy_document" "s3_policy" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.static.arn}/*"]
+
+    principals {
+      type        = "CanonicalUser"
+      identifiers = [aws_cloudfront_origin_access_identity.origin_access_identity.s3_canonical_user_id]
+    }
+  }
+
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.static.arn]
+
+    principals {
+      type        = "CanonicalUser"
+      identifiers = [aws_cloudfront_origin_access_identity.origin_access_identity.s3_canonical_user_id]
+    }
+  }
+}
+
+
+
+
+
 // S3
-// website bucket. will be used by cloudfront as origin
+// bucket to be used by cloudfront as origin
 resource "aws_s3_bucket" "prd_bucket" {
   bucket = var.domain_name
   acl           = "private"
@@ -59,7 +89,7 @@ resource "aws_s3_bucket" "prd_bucket" {
     index_document = "index.html"
     error_document = "error.html"
   }
-  policy = file("C:/sources/tf-module-s3-cdn-acm/terraform/bucket-policy.json")
+  policy = data.aws_iam_policy_document.s3_policy
 }
 
 
@@ -81,7 +111,7 @@ resource "aws_cloudfront_distribution" "prd_distribution" {
     domain_name = aws_s3_bucket.prd_bucket.website_endpoint
     origin_id   = "S3-${aws_s3_bucket.prd_bucket.bucket}"
     s3_origin_config {
-        origin_access_identity = "${aws_cloudfront_origin_access_identity.origin_access_identity.cloudfront_access_identity_path}"
+        origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity.cloudfront_access_identity_path
     }
   }
   default_root_object = "index.html"
