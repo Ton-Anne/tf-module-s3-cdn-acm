@@ -105,7 +105,8 @@ resource "aws_cloudfront_distribution" "prd_distribution" {
     domain_name = var.domain_name
     origin_id   = "S3-${aws_s3_bucket.site_cdn_bucket.bucket}"
     s3_origin_config {
-        origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity_s3.s3_canonical_user_id
+        origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity_s3.cloudfront_access_identity_path
+        # origin_access_identity = aws_cloudfront_origin_access_identity.origin_access_identity_s3.s3_canonical_user_id
     }
   }
 #   default_root_object = "index.html"
