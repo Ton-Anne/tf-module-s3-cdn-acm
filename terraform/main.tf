@@ -16,6 +16,15 @@ data "aws_route53_zone" "domain_zone" {
   zone_id         = var.zone_id
   private_zone = false
 }
+
+// ACM
+// creates the certificate
+resource "aws_acm_certificate" "cert" {
+    domain_name         = var.domain_name
+    validation_method   = "DNS"
+    # provider            = aws.virginia
+}
+
 // add domain name dns record for validation
 resource "aws_route53_record" "validation" {
   name    = aws_acm_certificate.cert.domain_validation_options[0].resource_record_name
@@ -24,30 +33,12 @@ resource "aws_route53_record" "validation" {
   records = [aws_acm_certificate.cert.domain_validation_options[0].resource_record_value]
   ttl     = "60"
 }
-// record to point the domain name to the cdn
-resource "aws_route53_record" "cloudfront" {
-  name    = ""
-  type    = "A"
-  zone_id = data.aws_route53_zone.domain_zone.zone_id
-  alias {
-    name                   = aws_cloudfront_distribution.prd_distribution.domain_name
-    zone_id                = aws_cloudfront_distribution.prd_distribution.hosted_zone_id
-    evaluate_target_health = false
-  }
-}
-
 // ACM
-// creates the certificate in us-east-1 for cdn
-resource "aws_acm_certificate" "cert" {
-    domain_name         = var.domain_name
-    validation_method   = "DNS"
-    provider            = aws.virginia
-}
 // to validate the certificate using the dns record
 resource "aws_acm_certificate_validation" "cert_validation" {
   certificate_arn           = aws_acm_certificate.cert.arn
   validation_record_fqdns   = [aws_route53_record.validation.fqdn]
-  provider                  = aws.virginia
+#   provider                  = aws.virginia
 }
 
 
@@ -125,5 +116,17 @@ resource "aws_cloudfront_distribution" "prd_distribution" {
   viewer_certificate {
     acm_certificate_arn = aws_acm_certificate_validation.cert_validation.certificate_arn
     ssl_support_method  = "sni-only"
+  }
+}
+
+// record to point the domain name to the cdn
+resource "aws_route53_record" "cloudfront" {
+  name    = ""
+  type    = "A"
+  zone_id = data.aws_route53_zone.domain_zone.zone_id
+  alias {
+    name                   = aws_cloudfront_distribution.prd_distribution.domain_name
+    zone_id                = aws_cloudfront_distribution.prd_distribution.hosted_zone_id
+    evaluate_target_health = false
   }
 }
