@@ -12,3 +12,6 @@ variable "index_path" {
 variable "error_path" {
 }
 
+// Bucket name for the website
+variable "bucket_name" {
+}

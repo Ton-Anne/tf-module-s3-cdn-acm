@@ -12,6 +12,8 @@ provider "aws" {
   version = "~> 2.23"
 }
 
+
+//
 // ACM
 // creates the certificate in us-east-1 for cdn
 resource "aws_acm_certificate" "default" {
@@ -61,18 +63,15 @@ resource "aws_acm_certificate_validation" "default" {
 
 // S3
 // website bucket. will be used by cloudfront as origin
-// we will use the domain name as bucketname
 resource "aws_s3_bucket" "prd_bucket" {
-  // domain name as bucket name for ease of use
-  bucket = var.domain_name
+  bucket = var.bucket_name
 
-  // public because it needs to be readable from the internet
+  // public because it needs to be readable from the internet. needs to be changed to a different setup
   acl           = "public-read"
   force_destroy = true
   website {
     // request for root path of the site go here
     index_document = "index.html"
-
     // error or non existing pages go here
     error_document = "error.html"
   }
@@ -174,6 +173,7 @@ resource "aws_cloudfront_distribution" "prd_distribution" {
     ssl_support_method  = "sni-only"
   }
 }
+
 
 // S3 AGAIN
 // to provide the index and error files in s3

@@ -9,3 +9,6 @@ index_path = "/Users/ton-annevanderlinden/proj-condoor-emmen/terraform/index.htm
 
 // supply the local path for the error file
 error_path = "/Users/ton-annevanderlinden/proj-condoor-emmen/terraform/error.html"
+
+// Bucket name for the website
+bucket_name = websitebucket
